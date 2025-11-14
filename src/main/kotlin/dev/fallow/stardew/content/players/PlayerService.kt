@@ -1,5 +1,6 @@
 package dev.fallow.stardew.content.players
 
+import dev.fallow.stardew.db.data.PlayerId
 import dev.fallow.stardew.db.storages.FarmStorage
 import dev.fallow.stardew.db.storages.PlayerStorage
 import dev.fallow.stardew.services.StardewService
@@ -19,7 +20,7 @@ object PlayerService : StardewService(), Listener {
         if (e.loginResult != AsyncPlayerPreLoginEvent.Result.ALLOWED) return
 
         // preload the data so first access doesn't lag
-        val data = PlayerStorage.load(e.uniqueId)
+        val data = PlayerStorage.load(PlayerId(e.uniqueId))
 
         // also preload the farm, if they are in one
         val farmId = data.farmId

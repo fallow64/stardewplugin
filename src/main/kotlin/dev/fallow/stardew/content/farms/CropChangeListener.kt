@@ -3,7 +3,10 @@ package dev.fallow.stardew.content.farms
 import com.marcusslover.plus.lib.common.DataType
 import com.marcusslover.plus.lib.item.Item
 import dev.fallow.stardew.StardewPlugin
+import dev.fallow.stardew.db.data.CropDefinition
+import dev.fallow.stardew.db.data.CropDefinitionId
 import dev.fallow.stardew.db.data.CropTile
+import dev.fallow.stardew.db.storages.CropDefinitionStorage
 import dev.fallow.stardew.db.storages.FarmStorage
 import dev.fallow.stardew.db.storages.PlayerStorage
 import dev.fallow.stardew.util.toFarmLocation
@@ -30,16 +33,16 @@ object CropChangeListener : Listener {
         e.player.give(Item.of(Material.WHEAT_SEEDS).setTag("crop-type", "parsnip", DataType.STRING).itemStack())
 
         // get the cropType from a custom tag
-        val cropTypeTag = Item.of(e.itemInHand.asOne()).getTag("crop-type", DataType.STRING).getOrNull() ?: return
-        val cropType = CropType.entries.firstOrNull { it.id == cropTypeTag } ?: run {
-            StardewPlugin.logger.warning("Invalid 'crop-type' tag: $cropTypeTag")
-            return
-        }
+        val rawStringTag = Item.of(e.itemInHand.asOne()).getTag("crop-type", DataType.STRING).getOrNull() ?: return
+        val cropDefinitionId = CropDefinitionId(rawStringTag)
+
+        // TODO: use this to spawn different materials/something...
+        // val cropType = CropDefinitionStorage.load(cropDefinitionId)
 
         // player must have farm and currently be within their farm to place a custom crop
+        // TODO: check if they're within their farm or in common area
         val playerData = PlayerStorage.load(e.player)
-        val playerFarmId = playerData.farmId
-        if (playerFarmId == null || !playerData.inFarm) {
+        val playerFarmId = playerData.farmId ?: run {
             e.isCancelled = true
             return
         }
@@ -47,7 +50,7 @@ object CropChangeListener : Listener {
         // create the new crops
         val location = e.block.location.toFarmLocation(playerFarmId)
         val newCropTile = CropTile(
-            cropType = cropType,
+            definition = cropDefinitionId,
             location = location,
             timePlaced = System.currentTimeMillis(),
             currentDay = 0,

@@ -5,6 +5,8 @@ import com.marcusslover.plus.lib.command.CommandContext
 import com.marcusslover.plus.lib.command.ICommand
 import com.marcusslover.plus.lib.command.TabCompleteContext
 import dev.fallow.stardew.db.data.Farm
+import dev.fallow.stardew.db.data.FarmId
+import dev.fallow.stardew.db.data.PlayerId
 import dev.fallow.stardew.db.storages.FarmStorage
 import dev.fallow.stardew.db.storages.PlayerStorage
 import dev.fallow.stardew.util.FeedbackType
@@ -29,7 +31,7 @@ object FarmCommand : ICommand {
                     return true
                 }
 
-                val newFarmId = UUID.randomUUID()
+                val newFarmId = FarmId(UUID.randomUUID())
                 val newFarm = Farm(
                     uniqueId = newFarmId,
                     players = mutableListOf(player.uniqueId),
@@ -37,7 +39,7 @@ object FarmCommand : ICommand {
                 )
 
                 FarmStorage.store(newFarmId, newFarm)
-                PlayerStorage.write(player.uniqueId) {
+                PlayerStorage.write(PlayerId(player.uniqueId)) {
                     it.farmId = newFarmId
                 }
 

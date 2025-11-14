@@ -4,6 +4,7 @@ import com.google.gson.*
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import dev.fallow.stardew.db.data.FarmId
 import java.io.IOException
 import java.util.*
 
@@ -45,7 +46,7 @@ object SerializationHelper {
             }
 
             try {
-                val farmId = UUID.fromString(parts[0])
+                val farmId = FarmId(UUID.fromString(parts[0]))
                 val x = parts[1].toInt()
                 val y = parts[2].toInt()
                 val z = parts[3].toInt()
