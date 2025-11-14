@@ -3,7 +3,6 @@ package dev.fallow.stardew.content.farms
 import com.marcusslover.plus.lib.common.DataType
 import com.marcusslover.plus.lib.item.Item
 import dev.fallow.stardew.StardewPlugin
-import dev.fallow.stardew.db.data.CropDefinition
 import dev.fallow.stardew.db.data.CropDefinitionId
 import dev.fallow.stardew.db.data.CropTile
 import dev.fallow.stardew.db.storages.CropDefinitionStorage
@@ -16,16 +15,11 @@ import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
 import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
-import org.bukkit.event.block.BlockFadeEvent
-import org.bukkit.event.block.BlockFromToEvent
-import org.bukkit.event.block.BlockGrowEvent
-import org.bukkit.event.block.BlockPistonExtendEvent
 import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.block.MoistureChangeEvent
 import org.bukkit.event.player.PlayerInteractEvent
 import kotlin.jvm.optionals.getOrNull
 
-object CropChangeListener : Listener {
+object CustomCropListener : Listener {
     /** Handle crop placement */
     @EventHandler
     fun onBlockPlace(e: BlockPlaceEvent) {
@@ -36,8 +30,13 @@ object CropChangeListener : Listener {
         val rawStringTag = Item.of(e.itemInHand.asOne()).getTag("crop-type", DataType.STRING).getOrNull() ?: return
         val cropDefinitionId = CropDefinitionId(rawStringTag)
 
-        // TODO: use this to spawn different materials/something...
-        // val cropType = CropDefinitionStorage.load(cropDefinitionId)
+        // load the crop definition to get the block material
+        val cropDefinition = CropDefinitionStorage.load(cropDefinitionId)
+        if (cropDefinition == null) {
+            StardewPlugin.logger.warning("Crop definition not found for id: ${cropDefinitionId.id}")
+            e.isCancelled = true
+            return
+        }
 
         // player must have farm and currently be within their farm to place a custom crop
         // TODO: check if they're within their farm or in common area
@@ -47,13 +46,14 @@ object CropChangeListener : Listener {
             return
         }
 
+        // set the block to the crop definition's material
+        e.block.type = cropDefinition.material
+
         // create the new crops
         val location = e.block.location.toFarmLocation(playerFarmId)
         val newCropTile = CropTile(
             definition = cropDefinitionId,
             location = location,
-            timePlaced = System.currentTimeMillis(),
-            currentDay = 0,
         )
 
         // add it to the farm
@@ -94,45 +94,44 @@ object CropChangeListener : Listener {
         FarmStorage.removeCrop(crop.location)
     }
 
-    /** Disable natural crop growth. */
-    @EventHandler
-    fun onBlockGrow(e: BlockGrowEvent) {
-        if (blockIsMinecraftCrop(e.block.type)) e.isCancelled = true
-    }
-
-    /** Disable farmland drying out. */
-    @EventHandler
-    fun onBlockFade(e: BlockFadeEvent) {
-        if (e.block.type == Material.FARMLAND) e.isCancelled = true
-    }
-
-    /** Disable player trample farmland. */
+    /** Handle watering can. */
     @EventHandler
     fun onInteraction(e: PlayerInteractEvent) {
-        if (e.action == Action.PHYSICAL && e.clickedBlock?.type == Material.FARMLAND) {
-            e.isCancelled = true
-        }
-    }
+        if (e.action != Action.RIGHT_CLICK_BLOCK) return
 
-    /** Disable automatic farmland water propagation. */
-    @EventHandler
-    fun onMoistureChange(e: MoistureChangeEvent) {
+        val item = e.item ?: return
+        val isWateringCan = Item.of(item).getTag("tool-type", DataType.STRING).getOrNull() == "watering-can"
+        if (!isWateringCan) return
+
+        val clickedBlock = e.clickedBlock ?: return
+        
+        // Check if clicking on farmland or a crop
+        val targetBlock = when {
+            clickedBlock.type == Material.FARMLAND -> clickedBlock
+            blockIsMinecraftCrop(clickedBlock.type) -> clickedBlock.getRelative(BlockFace.DOWN)
+            else -> return
+        }
+
+        if (targetBlock.type != Material.FARMLAND) return
+
+        // Get the player's farm
+        val farm = FarmStorage.loadPlayer(e.player) ?: return
+        
+        // Check if there's a crop on this farmland
+        val cropLocation = targetBlock.getRelative(BlockFace.UP).location
+        val crop = farm.getCrop(cropLocation) ?: return
+
+        // Water the crop
+        FarmStorage.waterCrop(crop.location)
+
+        // Visual feedback: set farmland to moisturized
+        val farmlandData = targetBlock.blockData as? org.bukkit.block.data.type.Farmland
+        if (farmlandData != null) {
+            farmlandData.moisture = farmlandData.maximumMoisture
+            targetBlock.blockData = farmlandData
+        }
+
         e.isCancelled = true
-    }
-
-    /** Disable water flowing over crops. */
-    @EventHandler
-    fun onBlockMove(e: BlockFromToEvent) {
-        if (blockIsMinecraftCrop(e.toBlock.type)) e.isCancelled = true
-    }
-
-    /** Disable piston extensions that include any crop. */
-    @EventHandler
-    fun onPistonExtend(e: BlockPistonExtendEvent) {
-        val anyIsCrop = e.blocks.any { blockIsMinecraftCrop(it.type) }
-        if (anyIsCrop) {
-            e.isCancelled = true
-        }
     }
 
     /** Returns whether a specific block is a Minecraft crop, i.e. wheat or carrot seeds (placed). */

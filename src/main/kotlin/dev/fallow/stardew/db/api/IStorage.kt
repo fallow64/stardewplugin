@@ -3,7 +3,7 @@ package dev.fallow.stardew.db.api
 /**
  * `IStorage` is a simple interface for storing types of storages.
  */
-interface IStorage {
+sealed interface IStorage {
     /**
      * Called when the `IStorage` is initially registered.
      */

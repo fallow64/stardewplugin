@@ -44,4 +44,17 @@ object FarmStorage : FolderStorageMap<FarmId, Farm?>(
         }
         return old
     }
+
+    fun waterCrop(location: FarmLocation3i): Boolean {
+        var success = false
+        FarmStorage.write(location.farmId) {
+            requireNotNull(it) { "Attempt to water crop where farmId not found" }
+            val crop = it.cropTiles[location]
+            if (crop != null) {
+                crop.watered = true
+                success = true
+            }
+        }
+        return success
+    }
 }

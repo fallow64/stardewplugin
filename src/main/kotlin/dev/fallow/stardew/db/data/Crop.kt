@@ -17,6 +17,7 @@ data class CropDefinition(
 data class CropTile(
     val definition: CropDefinitionId,
     val location: FarmLocation3i,
-    val timePlaced: Long,
-    val currentDay: Int,
+    val timePlaced: Long = System.currentTimeMillis(),
+    val currentDay: Int = 0,
+    var watered: Boolean = false,
 )
