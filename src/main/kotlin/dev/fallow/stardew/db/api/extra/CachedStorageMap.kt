@@ -66,7 +66,7 @@ abstract class CachedStorageMap<K, V> : IStorageMap<K, V> {
         }
     }
 
-    override fun empty() {
+    override fun emptyCache() {
         cache.clear()
         dirtyKeys.clear()
     }

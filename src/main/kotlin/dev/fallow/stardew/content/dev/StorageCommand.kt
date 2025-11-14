@@ -15,17 +15,17 @@ object StorageCommand : ICommand {
         val args = ctx.args
         when (args.size) {
             1 -> when (args[0]) {
-                "flush" -> {
+                "flushall" -> {
                     TaskHelper.async {
-                        StorageService.flush()
+                        StorageService.flushAll()
                         TaskHelper.sync {
                             ctx.sender.sendFeedback(FeedbackType.Success, "Successfully flushed all storage buffers.")
                         }
                     }
                 }
                 "emptyall" -> {
-                    StorageService.emptyAll()
-                    ctx.sender.sendFeedback(FeedbackType.Success, "Successfully empties all storages. This will probably cause issues.")
+                    StorageService.emptyAllCaches()
+                    ctx.sender.sendFeedback(FeedbackType.Success, "Successfully emptied all storages. This will probably cause issues.")
                 }
                 else -> ctx.sender.sendFeedback(FeedbackType.Error, "Unknown subcommand.")
             }
@@ -38,7 +38,7 @@ object StorageCommand : ICommand {
     override fun tab(ctx: TabCompleteContext): List<String> {
         val args = ctx.args
         return when (args.size) {
-            1 -> tabComplete(args[0], listOf("flush", "emptyall"))
+            1 -> tabComplete(args[0], listOf("flushall", "emptyall"))
             else -> listOf()
         }
     }

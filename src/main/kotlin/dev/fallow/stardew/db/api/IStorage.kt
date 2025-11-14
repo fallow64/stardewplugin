@@ -23,8 +23,7 @@ interface IStorage {
     fun flush()
 
     /**
-     * Empties all values within the storage. This *will* cause internal game errors, but for the purpose of debugging,
-     * that's okay.
+     * Empties all values within the storage's cache.
      */
-    fun empty()
+    fun emptyCache()
 }

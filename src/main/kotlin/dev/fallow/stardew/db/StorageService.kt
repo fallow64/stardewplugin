@@ -12,39 +12,45 @@ import kotlin.time.measureTime
 object StorageService : StardewService() {
     private const val STORAGE_FLUSH_PERIOD = 60 * 20L
 
+    private val _storages = mutableMapOf<String, IStorage>()
     private var flushTask: BukkitTask? = null
-    private val storages = mutableListOf<IStorage>()
 
-    fun register(vararg storages: IStorage) = apply {
-        storages.forEach {
-            this.storages.add(it)
-            it.init()
-        }
-    }
+    val storages
+        get() = _storages.toMap()
 
     override fun init() {
         // note: storage initialization happens before
         // automatically flush storages every 30 seconds
-        flushTask = TaskHelper.asyncTimer(STORAGE_FLUSH_PERIOD, STORAGE_FLUSH_PERIOD, this::flush)
+        flushTask = TaskHelper.asyncTimer(STORAGE_FLUSH_PERIOD, STORAGE_FLUSH_PERIOD, this::flushAll)
     }
 
     override fun shutdown() {
         flushTask?.cancel()
-
-        storages.forEach { it.shutdown() }
+        _storages.values.forEach { it.shutdown() }
     }
 
-    fun flush() {
+    /** Register a given storage under an id. */
+    fun register(vararg storages: Pair<String, IStorage>) = apply {
+        storages.forEach { (id, storage) ->
+            require(!this._storages.containsKey(id)) { "duplicate storage id $id registered twice"}
+            this._storages[id] = storage
+            storage.init()
+        }
+    }
+
+    /** Flush data from the storage, essentially backing it up. */
+    fun flushAll() {
         plugin.logger.info("Flushing storage buffers")
         val timeTaken = measureTime {
-            storages.forEach { it.flush() }
+            _storages.values.forEach { it.flush() }
         }
         plugin.logger.info("Flush storage buffers took: $timeTaken")
     }
 
-    fun emptyAll() {
-        storages.forEach {
-            it.empty()
+    /** Empty all cached items, making every single load a cache miss. */
+    fun emptyAllCaches() {
+        _storages.values.forEach {
+            it.emptyCache()
         }
     }
 }

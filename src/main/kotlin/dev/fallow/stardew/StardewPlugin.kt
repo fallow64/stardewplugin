@@ -23,8 +23,8 @@ class StardewPlugin : JavaPlugin() {
 
         ServiceManager.register(
             StorageService.register(
-                PlayerStorage,
-                FarmStorage
+                "players" to PlayerStorage,
+                "farms" to FarmStorage
             ),
             PlusService,
             PlayerService,

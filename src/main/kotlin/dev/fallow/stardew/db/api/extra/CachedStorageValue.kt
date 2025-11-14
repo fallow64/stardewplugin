@@ -35,7 +35,7 @@ abstract class CachedStorageValue<T> : IStorageValue<T> {
     abstract fun rawLoad(): T
     abstract fun rawStore(value: T)
 
-    override fun empty() {
+    override fun emptyCache() {
         value = null
     }
 }

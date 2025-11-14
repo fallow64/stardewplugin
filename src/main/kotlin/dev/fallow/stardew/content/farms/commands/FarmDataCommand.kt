@@ -5,6 +5,7 @@ import com.marcusslover.plus.lib.command.CommandContext
 import com.marcusslover.plus.lib.command.ICommand
 import com.marcusslover.plus.lib.command.TabCompleteContext
 import dev.fallow.stardew.db.data.Farm
+import dev.fallow.stardew.db.storages.FarmStorage
 import dev.fallow.stardew.util.FeedbackType
 import dev.fallow.stardew.util.SerializationHelper
 import dev.fallow.stardew.util.sendFeedback
@@ -25,7 +26,7 @@ object FarmDataCommand : ICommand {
                     }
 
                     // get the player's farm
-                    val farm = Farm.getFarm(player) ?: run {
+                    val farm = FarmStorage.loadPlayer(player) ?: run {
                         ctx.sender.sendFeedback(FeedbackType.Error, "You do not have a farm.")
                         return true
                     }
