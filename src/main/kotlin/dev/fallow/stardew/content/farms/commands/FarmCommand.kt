@@ -23,7 +23,7 @@ object FarmCommand : ICommand {
         val args = ctx.args
         when (args.getOrNull(0)) {
             "create" -> {
-                val playerData = PlayerStorage.load(player.uniqueId)
+                val playerData = PlayerStorage.load(player)
                 if (playerData.farmId != null) {
                     player.sendFeedback(FeedbackType.Error, "You cannot join more than one farm.")
                     return true
@@ -45,7 +45,7 @@ object FarmCommand : ICommand {
                 return true
             }
             "status" -> {
-                val playerData = PlayerStorage.load(player.uniqueId)
+                val playerData = PlayerStorage.load(player)
 
                 val farmId = playerData.farmId
                 if (farmId != null) {

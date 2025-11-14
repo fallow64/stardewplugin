@@ -9,5 +9,4 @@ object FarmAdminCommand : ICommand {
     override fun execute(ctx: CommandContext): Boolean {
         TODO("Not yet implemented")
     }
-
 }

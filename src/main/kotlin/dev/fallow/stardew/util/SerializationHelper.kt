@@ -11,12 +11,12 @@ object SerializationHelper {
     val gson: Gson = GsonBuilder()
         .setPrettyPrinting()
         .serializeNulls()
-        .registerTypeAdapter(Location3i::class.java, Location3iTypeAdapter)
+        .registerTypeAdapter(FarmLocation3i::class.java, FarmLocation3iTypeAdapter)
         .create()
 
-    object Location3iTypeAdapter : TypeAdapter<Location3i>() {
+    object FarmLocation3iTypeAdapter : TypeAdapter<FarmLocation3i>() {
         @Throws(IOException::class)
-        override fun write(out: JsonWriter, value: Location3i?) {
+        override fun write(out: JsonWriter, value: FarmLocation3i?) {
             if (value == null) {
                 out.nullValue()
                 return
@@ -25,23 +25,23 @@ object SerializationHelper {
         }
 
         @Throws(IOException::class)
-        override fun read(reader: JsonReader): Location3i? {
+        override fun read(reader: JsonReader): FarmLocation3i? {
             if (reader.peek() == JsonToken.NULL) {
                 reader.nextNull()
                 return null
             }
 
             val raw = reader.nextString()
-            // Expected basic format: Location3i(uuid,x,y,z)
-            if (!raw.startsWith("Location3i(") || !raw.endsWith(")")) {
+            // Expected basic format: FarmLocation3i(uuid,x,y,z)
+            if (!raw.startsWith("FarmLocation3i(") || !raw.endsWith(")")) {
                 throw JsonParseException("Invalid Location3i format: '$raw'")
             }
 
-            val inside = raw.substringAfter("Location3i(").substringBeforeLast(")")
+            val inside = raw.substringAfter("FarmLocation3i(").substringBeforeLast(")")
             val parts = inside.split(",")
 
             if (parts.size != 4) {
-                throw JsonParseException("Location3i requires 4 fields, got ${parts.size}: '$raw'")
+                throw JsonParseException("FarmLocation3i requires 4 fields, got ${parts.size}: '$raw'")
             }
 
             try {
@@ -50,10 +50,10 @@ object SerializationHelper {
                 val y = parts[2].toInt()
                 val z = parts[3].toInt()
 
-                return Location3i(farmId, x, y, z)
+                return FarmLocation3i(farmId, x, y, z)
 
             } catch (e: Exception) {
-                throw JsonParseException("Failed to parse Location3i: '$raw'", e)
+                throw JsonParseException("Failed to parse FarmLocation3i: '$raw'", e)
             }
         }
     }

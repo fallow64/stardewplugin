@@ -3,13 +3,12 @@
 Stardew Valley Clone
 
 - Each player has a **Farm**
-  - Crops are grown on a custom day/night cycle
-  - Players must water crops every day
   - Farm State
     - Crops
       - There will be a lot of different crops and crop states
       - Item Models for custom items
       - Noteblock/Strings for custom blocks
+      - Could potentially use strings/saplings/berries for hitbox, and use display entities for actual crop
     - Machines
     - Containers
     - NPCs/entities
@@ -22,6 +21,7 @@ Stardew Valley Clone
     - Problem:
       - Either entirely custom Minecraft building (i.e. dirt house)
       - Or blueprints that you can spawn
+      - For now, keep the player in survival. Near the end of development we can modify this.
 - Common areas
   - All NPCs and progress barriers are sent client-side
   - Option to show other players or not

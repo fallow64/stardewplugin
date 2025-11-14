@@ -4,11 +4,10 @@ import com.marcusslover.plus.lib.common.DataType
 import com.marcusslover.plus.lib.item.Item
 import dev.fallow.stardew.StardewPlugin
 import dev.fallow.stardew.db.data.CropTile
-import dev.fallow.stardew.db.data.Farm
 import dev.fallow.stardew.db.storages.FarmStorage
-import dev.fallow.stardew.util.toLocation3i
+import dev.fallow.stardew.db.storages.PlayerStorage
+import dev.fallow.stardew.util.toFarmLocation
 import org.bukkit.Material
-import org.bukkit.block.Block
 import org.bukkit.block.BlockFace
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
@@ -32,19 +31,22 @@ object CropChangeListener : Listener {
 
         // get the cropType from a custom tag
         val cropTypeTag = Item.of(e.itemInHand.asOne()).getTag("crop-type", DataType.STRING).getOrNull() ?: return
-        val cropType = CropType.entries.firstOrNull { it.id == cropTypeTag }
-        if (cropType == null) {
+        val cropType = CropType.entries.firstOrNull { it.id == cropTypeTag } ?: run {
             StardewPlugin.logger.warning("Invalid 'crop-type' tag: $cropTypeTag")
             return
         }
 
-        val farm = Farm.getFarm(e.player) ?: run {
+        // player must have farm and currently be within their farm to place a custom crop
+        val playerData = PlayerStorage.load(e.player)
+        val playerFarmId = playerData.farmId
+        if (playerFarmId == null || !playerData.inFarm) {
             e.isCancelled = true
             return
         }
 
-        val location = e.block.location.toLocation3i(farm.uniqueId)
-        val cropTile = CropTile(
+        // create the new crops
+        val location = e.block.location.toFarmLocation(playerFarmId)
+        val newCropTile = CropTile(
             cropType = cropType,
             location = location,
             timePlaced = System.currentTimeMillis(),
@@ -52,13 +54,9 @@ object CropChangeListener : Listener {
         )
 
         // add it to the farm
-        FarmStorage.write(farm.uniqueId) {
-            requireNotNull(it) { "farm should be initialized by here" }
-
-            val old = it.cropTiles.put(location, cropTile)
-            if (old != null) {
-                StardewPlugin.logger.severe("Crop has been overwritten by block place. Location: $location.")
-            }
+        val old = FarmStorage.addCrop(newCropTile)
+        if (old != null) {
+            StardewPlugin.logger.severe("Crop has been overwritten by block place. Location: $location.")
         }
     }
 
@@ -68,7 +66,7 @@ object CropChangeListener : Listener {
         val blockType = e.block.type
         val blockUp = e.block.getRelative(BlockFace.UP)
 
-        // due to this when, early return when crop is not destroyed
+        // return if crop isn't destroyed (or get data about that crop)
         val isDirectCrop = blockIsMinecraftCrop(e.block.type)
         val cropBlock = when {
             isDirectCrop -> e.block
@@ -77,7 +75,7 @@ object CropChangeListener : Listener {
         }
 
         // get the player's farm (if any) or return
-        val farm = Farm.getFarm(e.player) ?: return
+        val farm = FarmStorage.loadPlayer(e.player) ?: return
         val crop = farm.getCrop(cropBlock.location) ?: return
 
         // at this point, we guarantee the player has destroyed a crop
@@ -85,12 +83,12 @@ object CropChangeListener : Listener {
             // if they directly destroyed a crop, don't drop it
             e.isDropItems = false
         } else {
-            // if it isn't directly a crop, set the above block to air
+            // if it isn't directly a crop, set the above block to air to prevent item drop
             cropBlock.type = Material.AIR
         }
 
         // remove the crop
-        farm.removeCrop(crop.location)
+        FarmStorage.removeCrop(crop.location)
     }
 
     /** Disable natural crop growth. */

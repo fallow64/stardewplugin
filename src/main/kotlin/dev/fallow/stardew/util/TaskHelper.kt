@@ -4,8 +4,12 @@ import dev.fallow.stardew.StardewPlugin
 import org.bukkit.Bukkit
 import org.bukkit.scheduler.BukkitTask
 
+/**
+ * Various helpers related to the Bukkit scheduler.
+ * TODO: explore Kotlin coroutines
+ */
 object TaskHelper {
-    val plugin
+    private val plugin
         get() = StardewPlugin.main
 
     fun async(runnable: () -> Unit): BukkitTask {
