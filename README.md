@@ -1,0 +1,43 @@
+## Ideas
+
+Stardew Valley Clone
+
+- Each player has a **Farm**
+  - Crops are grown on a custom day/night cycle
+  - Players must water crops every day
+  - Farm State
+    - Crops
+      - There will be a lot of different crops and crop states
+      - Item Models for custom items
+      - Noteblock/Strings for custom blocks
+    - Machines
+    - Containers
+    - NPCs/entities
+    - Structure build status (i.e. how many days Robin has left)
+    - Maybe represented as a Slime world?
+      - I want to embed the farm state into a greater farm area with fences etc, and I want to update this easily 
+      - Or dynamically reconstruct the world every time it is loaded?\
+      - Would lead to some jankiness and easy data loss
+  - Building:
+    - Problem:
+      - Either entirely custom Minecraft building (i.e. dirt house)
+      - Or blueprints that you can spawn
+- Common areas
+  - All NPCs and progress barriers are sent client-side
+  - Option to show other players or not
+    - This will make other players phase through other barriers  but that's okay
+- Core gameplay concepts
+  - Fishing
+      - Create minigame
+  - Mining
+      - Custom cave system
+  - Combat
+    - Custom weapons (hammers, swords, daggers)
+  - Stamina
+      - Replace food bar or something
+      - Replenishes on sleep or spa
+- Custom Items
+  - no fucking clue lmfao
+  - I want specific items (i.e. seeds, machines, etc) to be per-farm. Contracts? @MarcusSlover
+- Custom menu via crafting table slots?
+- L (action key) for custom menu
