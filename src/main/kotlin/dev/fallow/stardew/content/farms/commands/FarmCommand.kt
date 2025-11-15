@@ -12,7 +12,7 @@ import dev.fallow.stardew.db.storages.PlayerStorage
 import dev.fallow.stardew.util.FeedbackType
 import dev.fallow.stardew.util.sendFeedback
 import org.bukkit.entity.Player
-import java.util.UUID
+import java.util.*
 
 @Command(name = "farm")
 object FarmCommand : ICommand {
@@ -34,14 +34,12 @@ object FarmCommand : ICommand {
                 val newFarmId = FarmId(UUID.randomUUID())
                 val newFarm = Farm(
                     uniqueId = newFarmId,
-                    players = mutableListOf(player.uniqueId),
+                    players = mutableListOf(PlayerId(player.uniqueId)),
                     cropTiles = mutableMapOf()
                 )
 
                 FarmStorage.store(newFarmId, newFarm)
-                PlayerStorage.write(PlayerId(player.uniqueId)) {
-                    it.farmId = newFarmId
-                }
+                playerData.farmId = newFarmId
 
                 player.sendFeedback(FeedbackType.Success, "Created new farm!")
                 return true
@@ -58,6 +56,28 @@ object FarmCommand : ICommand {
 
                 return true
             }
+            "leave" -> {
+                val playerData = PlayerStorage.load(player)
+                val farmId = playerData.farmId
+                
+                if (farmId == null) {
+                    player.sendFeedback(FeedbackType.Error, "You are not in a farm.")
+                    return true
+                }
+
+                // Remove player from farm's player list
+                val farm = FarmStorage.load(farmId)
+                if (farm == null) {
+                    player.sendFeedback(FeedbackType.Error, "You are in an invalid broken farm state..")
+                    return true
+                }
+
+                farm.removePlayer(PlayerId(player.uniqueId))
+                playerData.farmId = null
+
+                player.sendFeedback(FeedbackType.Success, "You have left the farm.")
+                return true
+            }
             else -> {
                 player.sendFeedback(FeedbackType.Error, "Unknown subcommand.")
                 return true
@@ -68,7 +88,7 @@ object FarmCommand : ICommand {
     override fun tab(ctx: TabCompleteContext): List<String> {
         val args = ctx.args
         return when (args.size) {
-            1 -> tabComplete(args[0], listOf("create", "status"))
+            1 -> tabComplete(args[0], listOf("create", "status", "leave"))
             else -> listOf()
         }
     }

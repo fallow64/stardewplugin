@@ -15,8 +15,7 @@ object PlayerStorage : FolderStorageMap<PlayerId, PlayerData>(
     valueType = PlayerData::class.java
 ) {
     override fun emptyValue(key: PlayerId) = PlayerData(
-        uniqueId = key,
-        farmId = null,
+        uniqueId = key
     )
 
     fun load(player: OfflinePlayer): PlayerData {

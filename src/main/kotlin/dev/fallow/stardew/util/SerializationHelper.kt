@@ -1,11 +1,21 @@
 package dev.fallow.stardew.util
 
-import com.google.gson.*
+import com.google.gson.Gson
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonParseException
+import com.google.gson.TypeAdapter
 import com.google.gson.stream.JsonReader
 import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
+import dev.fallow.stardew.StardewPlugin
 import dev.fallow.stardew.db.data.FarmId
+import java.io.BufferedReader
+import java.io.BufferedWriter
+import java.io.File
+import java.io.FileReader
+import java.io.FileWriter
 import java.io.IOException
+import java.nio.file.Files
 import java.util.*
 
 object SerializationHelper {
@@ -15,7 +25,7 @@ object SerializationHelper {
         .registerTypeAdapter(FarmLocation3i::class.java, FarmLocation3iTypeAdapter)
         .create()
 
-    object FarmLocation3iTypeAdapter : TypeAdapter<FarmLocation3i>() {
+    private object FarmLocation3iTypeAdapter : TypeAdapter<FarmLocation3i>() {
         @Throws(IOException::class)
         override fun write(out: JsonWriter, value: FarmLocation3i?) {
             if (value == null) {
@@ -56,6 +66,29 @@ object SerializationHelper {
             } catch (e: Exception) {
                 throw JsonParseException("Failed to parse FarmLocation3i: '$raw'", e)
             }
+        }
+    }
+
+    fun <T> readJson(file: File, klass: Class<T>): T {
+        try {
+            FileReader(file).use { reader ->
+                return gson.fromJson(reader, klass)
+            }
+        } catch (e: IOException) {
+            StardewPlugin.logger.severe("Could not read file: ${file.absolutePath}")
+            throw RuntimeException(e)
+        }
+    }
+
+    fun <T> writeJson(file: File, value: T) {
+        try {
+            file.parentFile.mkdirs()
+            FileWriter(file).use { writer ->
+                gson.toJson(value, writer)
+            }
+        } catch (e: IOException) {
+            StardewPlugin.logger.severe("Could not write file: ${file.absolutePath}")
+            throw RuntimeException(e)
         }
     }
 }

@@ -14,16 +14,11 @@ sealed interface IStorage {
      * this case is covered by the default implementation.
      */
     fun shutdown() {
-        flush()
+        flushAll()
     }
 
     /**
      * Flushes any type of caches, writing all changes permanently.
      */
-    fun flush()
-
-    /**
-     * Empties all values within the storage's cache.
-     */
-    fun emptyCache()
+    fun flushAll()
 }

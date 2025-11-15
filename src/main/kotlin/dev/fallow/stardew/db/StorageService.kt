@@ -42,15 +42,8 @@ object StorageService : StardewService() {
     fun flushAll() {
         plugin.logger.info("Flushing storage buffers")
         val timeTaken = measureTime {
-            _storages.values.forEach { it.flush() }
+            _storages.values.forEach { it.flushAll() }
         }
         plugin.logger.info("Flush storage buffers took: $timeTaken")
-    }
-
-    /** Empty all cached items, making every single load a cache miss. */
-    fun emptyAllCaches() {
-        _storages.values.forEach {
-            it.emptyCache()
-        }
     }
 }

@@ -34,10 +34,6 @@ object StorageCommand : ICommand {
                         }
                     }
                 }
-                "emptyall" -> {
-                    StorageService.emptyAllCaches()
-                    ctx.sender.sendFeedback(FeedbackType.Success, "Successfully emptied all storages. This will probably cause issues.")
-                }
                 else -> ctx.sender.sendFeedback(FeedbackType.Error, "Unknown subcommand. Use: list, flush <storage>, flushall, empty <storage>, emptyall")
             }
             2 -> {
@@ -51,15 +47,11 @@ object StorageCommand : ICommand {
                 when (args[0]) {
                     "flush" -> {
                         TaskHelper.async {
-                            storage.flush()
+                            storage.flushAll()
                             TaskHelper.sync {
                                 ctx.sender.sendFeedback(FeedbackType.Success, "Successfully flushed storage '$storageKey'.")
                             }
                         }
-                    }
-                    "empty" -> {
-                        storage.emptyCache()
-                        ctx.sender.sendFeedback(FeedbackType.Success, "Successfully emptied cache for storage '$storageKey'.")
                     }
                     else -> ctx.sender.sendFeedback(FeedbackType.Error, "Unknown subcommand. Use: list, flush <storage>, flushall, empty <storage>, emptyall")
                 }
@@ -73,7 +65,7 @@ object StorageCommand : ICommand {
     override fun tab(ctx: TabCompleteContext): List<String> {
         val args = ctx.args
         return when (args.size) {
-            1 -> tabComplete(args[0], listOf("list", "flush", "flushall", "empty", "emptyall"))
+            1 -> tabComplete(args[0], listOf("list", "flush", "flushall"))
             2 -> {
                 when (args[0]) {
                     "flush", "empty" -> tabComplete(args[1], StorageService.storages.keys.toList())

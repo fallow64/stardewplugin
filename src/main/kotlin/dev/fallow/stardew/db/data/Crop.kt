@@ -19,5 +19,6 @@ data class CropTile(
     val location: FarmLocation3i,
     val timePlaced: Long = System.currentTimeMillis(),
     val currentDay: Int = 0,
+    @Transient
     var watered: Boolean = false,
 )

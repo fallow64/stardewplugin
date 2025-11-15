@@ -1,11 +1,9 @@
 package dev.fallow.stardew.db.api.extra
 
-import dev.fallow.stardew.StardewPlugin
+import dev.fallow.stardew.db.api.IStorageMap
 import dev.fallow.stardew.util.SerializationHelper
 import java.io.File
-import java.io.FileReader
-import java.io.FileWriter
-import java.io.IOException
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A key-value storage that maps keys to JSON files within a folder.
@@ -15,7 +13,9 @@ abstract class FolderStorageMap<K, V>(
     private val keyTransformer: (K) -> String,
     private val keyComposer: (String) -> K,
     private val valueType: Class<V>
-) : CachedStorageMap<K, V>() {
+) : IStorageMap<K, V> {
+    val cache = ConcurrentHashMap<K, V>()
+
     override fun init() {
         if (shouldLoadAllData) {
             loadAllData()
@@ -29,46 +29,32 @@ abstract class FolderStorageMap<K, V>(
         }
     }
 
-    override fun rawLoad(key: K): V {
-        val fileName = keyTransformer(key) + ".json"
-        val file = File(folder, fileName)
+    override fun load(key: K): V {
+        cache[key]?.let { return it }
 
-        if (file.exists()) {
-            // attempt to read file
-            try {
-                FileReader(file).use { fileReader ->
-                    // convert to json
-                    return SerializationHelper.gson.fromJson<V>(fileReader, valueType)
-                }
-            } catch (e: IOException) {
-                StardewPlugin.logger.severe("Could not read file: " + file.absolutePath)
-                throw RuntimeException(e)
-            }
-        } else {
-            // no file found, use default
-            return emptyValue(key)
-        }
+        val file = File(folder, keyTransformer(key) + ".json")
+
+        val value = if (file.exists()) SerializationHelper.readJson(file, valueType)
+        else emptyValue(key)
+
+        cache[key] = value
+        return value
     }
 
-    override fun rawStore(key: K, value: V) {
-        val fileName = keyTransformer(key) + ".json"
-        val file = File(folder, fileName)
-
-        try {
-            file.parentFile.mkdirs() // ensure the folder exists BEFORE opening the writer
-            FileWriter(file).use { writer ->
-                SerializationHelper.gson.toJson(value, writer)
-            }
-        } catch (e: IOException) {
-            StardewPlugin.logger.severe("Could not write file: ${file.absolutePath}")
-            throw RuntimeException(e)
-        }
+    override fun store(key: K, value: V): V? {
+        val old = cache.put(key, value)
+        flush(key)
+        return old
     }
 
-    override fun rawStoreBatch(entries: Map<K, V>) {
-        for ((key, value) in entries) {
-            rawStore(key, value)
-        }
+    fun flush(key: K) {
+        val value = cache[key] ?: return
+        val file = File(folder, keyTransformer(key) + ".json")
+        SerializationHelper.writeJson(file, value)
+    }
+
+    override fun flushAll() {
+        cache.forEach { flush(it.key) }
     }
 
     /**

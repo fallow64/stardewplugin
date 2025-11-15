@@ -13,10 +13,8 @@ import org.bukkit.Material
 import org.bukkit.block.BlockFace
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
 import org.bukkit.event.block.BlockBreakEvent
 import org.bukkit.event.block.BlockPlaceEvent
-import org.bukkit.event.player.PlayerInteractEvent
 import kotlin.jvm.optionals.getOrNull
 
 object CustomCropListener : Listener {
@@ -57,7 +55,10 @@ object CustomCropListener : Listener {
         )
 
         // add it to the farm
-        val old = FarmStorage.addCrop(newCropTile)
+        val farm = FarmStorage.load(playerFarmId) ?: error("Invalid playerFarmId")
+        val old = farm.addCrop(newCropTile)
+
+        // check if we overwrite something
         if (old != null) {
             StardewPlugin.logger.severe("Crop has been overwritten by block place. Location: $location.")
         }
@@ -70,11 +71,11 @@ object CustomCropListener : Listener {
         val blockUp = e.block.getRelative(BlockFace.UP)
 
         // return if crop isn't destroyed (or get data about that crop)
-        val isDirectCrop = blockIsMinecraftCrop(e.block.type)
-        val cropBlock = when {
-            isDirectCrop -> e.block
-            blockType == Material.FARMLAND && blockIsMinecraftCrop(blockUp.type) -> blockUp
-            else -> return
+        val isFarmland = blockType == Material.FARMLAND
+        val cropBlock = if (isFarmland) {
+            e.block
+        } else {
+            blockUp
         }
 
         // get the player's farm (if any) or return
@@ -82,63 +83,16 @@ object CustomCropListener : Listener {
         val crop = farm.getCrop(cropBlock.location) ?: return
 
         // at this point, we guarantee the player has destroyed a crop
-        if (isDirectCrop) {
-            // if they directly destroyed a crop, don't drop it
-            e.isDropItems = false
-        } else {
-            // if it isn't directly a crop, set the above block to air to prevent item drop
+        if (isFarmland) {
+            // if we're breaking farmland that leads to breaking a crop, set it as air
+            // TODO: this is a bit janky? weird how there's two things
             cropBlock.type = Material.AIR
+        } else {
+            // otherwise just set drop items to false like normal
+            e.isDropItems = false
         }
 
         // remove the crop
-        FarmStorage.removeCrop(crop.location)
-    }
-
-    /** Handle watering can. */
-    @EventHandler
-    fun onInteraction(e: PlayerInteractEvent) {
-        if (e.action != Action.RIGHT_CLICK_BLOCK) return
-
-        val item = e.item ?: return
-        val isWateringCan = Item.of(item).getTag("tool-type", DataType.STRING).getOrNull() == "watering-can"
-        if (!isWateringCan) return
-
-        val clickedBlock = e.clickedBlock ?: return
-        
-        // Check if clicking on farmland or a crop
-        val targetBlock = when {
-            clickedBlock.type == Material.FARMLAND -> clickedBlock
-            blockIsMinecraftCrop(clickedBlock.type) -> clickedBlock.getRelative(BlockFace.DOWN)
-            else -> return
-        }
-
-        if (targetBlock.type != Material.FARMLAND) return
-
-        // Get the player's farm
-        val farm = FarmStorage.loadPlayer(e.player) ?: return
-        
-        // Check if there's a crop on this farmland
-        val cropLocation = targetBlock.getRelative(BlockFace.UP).location
-        val crop = farm.getCrop(cropLocation) ?: return
-
-        // Water the crop
-        FarmStorage.waterCrop(crop.location)
-
-        // Visual feedback: set farmland to moisturized
-        val farmlandData = targetBlock.blockData as? org.bukkit.block.data.type.Farmland
-        if (farmlandData != null) {
-            farmlandData.moisture = farmlandData.maximumMoisture
-            targetBlock.blockData = farmlandData
-        }
-
-        e.isCancelled = true
-    }
-
-    /** Returns whether a specific block is a Minecraft crop, i.e. wheat or carrot seeds (placed). */
-    private fun blockIsMinecraftCrop(material: Material): Boolean {
-        return when (material) {
-            Material.WHEAT -> true
-            else -> false
-        }
+        farm.removeCrop(crop.location)
     }
 }

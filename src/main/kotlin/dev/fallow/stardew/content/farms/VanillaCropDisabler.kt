@@ -3,19 +3,14 @@ package dev.fallow.stardew.content.farms
 import org.bukkit.Material
 import org.bukkit.event.EventHandler
 import org.bukkit.event.Listener
-import org.bukkit.event.block.Action
-import org.bukkit.event.block.BlockFadeEvent
-import org.bukkit.event.block.BlockFromToEvent
-import org.bukkit.event.block.BlockGrowEvent
-import org.bukkit.event.block.BlockPistonExtendEvent
-import org.bukkit.event.block.MoistureChangeEvent
+import org.bukkit.event.block.*
 import org.bukkit.event.player.PlayerInteractEvent
 
 object VanillaCropDisabler : Listener {
     /** Disable natural crop growth. */
     @EventHandler
     fun onBlockGrow(e: BlockGrowEvent) {
-        if (blockIsMinecraftCrop(e.block.type)) e.isCancelled = true
+        if (isBlockCroplike(e.block.type)) e.isCancelled = true
     }
 
     /** Disable farmland drying out. */
@@ -41,20 +36,23 @@ object VanillaCropDisabler : Listener {
     /** Disable water flowing over crops. */
     @EventHandler
     fun onBlockMove(e: BlockFromToEvent) {
-        if (blockIsMinecraftCrop(e.toBlock.type)) e.isCancelled = true
+        if (isBlockCroplike(e.toBlock.type)) e.isCancelled = true
     }
 
     /** Disable piston extensions that include any crop. */
     @EventHandler
     fun onPistonExtend(e: BlockPistonExtendEvent) {
-        val anyIsCrop = e.blocks.any { blockIsMinecraftCrop(it.type) }
+        val anyIsCrop = e.blocks.any { isBlockCroplike(it.type) }
         if (anyIsCrop) {
             e.isCancelled = true
         }
     }
 
-    /** Returns whether a specific block is a Minecraft crop, i.e. wheat or carrot seeds (placed). */
-    private fun blockIsMinecraftCrop(material: Material): Boolean {
+    // TODO: right now this works for just wheat, but if we want custom crops (i.e. via string) this logic needs to be changed
+    // maybe instead of checking material, we know a farmId based on the region of the block
+    // but for right now this works
+    /** Returns whether a certain block type should be treated specially. */
+    private fun isBlockCroplike(material: Material): Boolean {
         return when (material) {
             Material.WHEAT -> true
             else -> false

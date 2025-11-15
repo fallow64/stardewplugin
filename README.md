@@ -41,3 +41,4 @@ Stardew Valley Clone
   - I want specific items (i.e. seeds, machines, etc) to be per-farm. Contracts? @MarcusSlover
 - Custom menu via crafting table slots?
 - L (action key) for custom menu
+- Chat bubble above player
