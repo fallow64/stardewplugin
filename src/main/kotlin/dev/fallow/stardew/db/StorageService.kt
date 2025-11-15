@@ -32,7 +32,7 @@ object StorageService : StardewService() {
     /** Register a given storage under an id. */
     fun register(vararg storages: Pair<String, IStorage>) = apply {
         storages.forEach { (id, storage) ->
-            require(!this._storages.containsKey(id)) { "duplicate storage id $id registered twice"}
+            require(!this._storages.containsKey(id)) { "duplicate storage id $id registered twice" }
             this._storages[id] = storage
             storage.init()
         }

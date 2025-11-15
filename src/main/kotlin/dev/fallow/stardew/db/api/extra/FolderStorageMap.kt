@@ -3,7 +3,6 @@ package dev.fallow.stardew.db.api.extra
 import dev.fallow.stardew.db.api.IStorageMap
 import dev.fallow.stardew.util.SerializationHelper
 import java.io.File
-import java.util.concurrent.ConcurrentHashMap
 
 /**
  * A key-value storage that maps keys to JSON files within a folder.
@@ -14,7 +13,7 @@ abstract class FolderStorageMap<K, V>(
     private val keyComposer: (String) -> K,
     private val valueType: Class<V>
 ) : IStorageMap<K, V> {
-    val cache = ConcurrentHashMap<K, V>()
+    val cache = mutableMapOf<K, V>()
 
     override fun init() {
         if (shouldLoadAllData) {
@@ -34,7 +33,7 @@ abstract class FolderStorageMap<K, V>(
 
         val file = File(folder, keyTransformer(key) + ".json")
 
-        val value = if (file.exists()) SerializationHelper.readJson(file, valueType)
+        val value = if (file.exists()) SerializationHelper.readJsonFile(file, valueType)
         else emptyValue(key)
 
         cache[key] = value
@@ -50,7 +49,7 @@ abstract class FolderStorageMap<K, V>(
     fun flush(key: K) {
         val value = cache[key] ?: return
         val file = File(folder, keyTransformer(key) + ".json")
-        SerializationHelper.writeJson(file, value)
+        SerializationHelper.writeJsonFile(file, value)
     }
 
     override fun flushAll() {

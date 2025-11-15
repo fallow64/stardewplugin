@@ -26,6 +26,7 @@ object StorageCommand : ICommand {
                         }
                     }
                 }
+
                 "flushall" -> {
                     TaskHelper.async {
                         StorageService.flushAll()
@@ -34,13 +35,21 @@ object StorageCommand : ICommand {
                         }
                     }
                 }
-                else -> ctx.sender.sendFeedback(FeedbackType.Error, "Unknown subcommand. Use: list, flush <storage>, flushall, empty <storage>, emptyall")
+
+                else -> ctx.sender.sendFeedback(
+                    FeedbackType.Error,
+                    "Unknown subcommand. Use: list, flush <storage>, flushall, empty <storage>, emptyall"
+                )
             }
+
             2 -> {
                 val storageKey = args[1]
                 val storage = StorageService.storages[storageKey]
                 if (storage == null) {
-                    ctx.sender.sendFeedback(FeedbackType.Error, "Storage '$storageKey' not found. Use /storage list to see available storages.")
+                    ctx.sender.sendFeedback(
+                        FeedbackType.Error,
+                        "Storage '$storageKey' not found. Use /storage list to see available storages."
+                    )
                     return true
                 }
 
@@ -49,14 +58,25 @@ object StorageCommand : ICommand {
                         TaskHelper.async {
                             storage.flushAll()
                             TaskHelper.sync {
-                                ctx.sender.sendFeedback(FeedbackType.Success, "Successfully flushed storage '$storageKey'.")
+                                ctx.sender.sendFeedback(
+                                    FeedbackType.Success,
+                                    "Successfully flushed storage '$storageKey'."
+                                )
                             }
                         }
                     }
-                    else -> ctx.sender.sendFeedback(FeedbackType.Error, "Unknown subcommand. Use: list, flush <storage>, flushall, empty <storage>, emptyall")
+
+                    else -> ctx.sender.sendFeedback(
+                        FeedbackType.Error,
+                        "Unknown subcommand. Use: list, flush <storage>, flushall, empty <storage>, emptyall"
+                    )
                 }
             }
-            else -> ctx.sender.sendFeedback(FeedbackType.Error, "Usage: /storage <list|flush|flushall|empty|emptyall> [storage]")
+
+            else -> ctx.sender.sendFeedback(
+                FeedbackType.Error,
+                "Usage: /storage <list|flush|flushall|empty|emptyall> [storage]"
+            )
         }
 
         return true
@@ -72,6 +92,7 @@ object StorageCommand : ICommand {
                     else -> listOf()
                 }
             }
+
             else -> listOf()
         }
     }

@@ -19,7 +19,6 @@ repositories {
 dependencies {
     paperweight.paperDevBundle("1.21.8-R0.1-SNAPSHOT")     // Kotlin stdlib
     implementation("com.marcusslover:plus:4.4.1-SNAPSHOT")          // Plus
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.10.2")
 }
 
 kotlin {

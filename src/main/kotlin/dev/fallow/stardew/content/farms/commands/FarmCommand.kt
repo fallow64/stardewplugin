@@ -44,22 +44,27 @@ object FarmCommand : ICommand {
                 player.sendFeedback(FeedbackType.Success, "Created new farm!")
                 return true
             }
+
             "status" -> {
                 val playerData = PlayerStorage.load(player)
 
                 val farmId = playerData.farmId
                 if (farmId != null) {
-                    player.sendFeedback(FeedbackType.Info, "You are currently in the farm with ID ${playerData.farmId}.")
+                    player.sendFeedback(
+                        FeedbackType.Info,
+                        "You are currently in the farm with ID ${playerData.farmId}."
+                    )
                 } else {
                     player.sendFeedback(FeedbackType.Info, "You are not in a farm.")
                 }
 
                 return true
             }
+
             "leave" -> {
                 val playerData = PlayerStorage.load(player)
                 val farmId = playerData.farmId
-                
+
                 if (farmId == null) {
                     player.sendFeedback(FeedbackType.Error, "You are not in a farm.")
                     return true
@@ -78,6 +83,7 @@ object FarmCommand : ICommand {
                 player.sendFeedback(FeedbackType.Success, "You have left the farm.")
                 return true
             }
+
             else -> {
                 player.sendFeedback(FeedbackType.Error, "Unknown subcommand.")
                 return true

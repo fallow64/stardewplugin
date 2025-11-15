@@ -15,7 +15,7 @@ abstract class FileStorageValue<T>(
     override fun load(): T {
         cache?.let { return it }
 
-        val result = if (file.exists()) SerializationHelper.readJson(file, valueType)
+        val result = if (file.exists()) SerializationHelper.readJsonFile(file, valueType)
         else emptyValue()
 
         cache = result
@@ -25,13 +25,13 @@ abstract class FileStorageValue<T>(
     override fun store(value: T): T? {
         val old = cache
         cache = value
-        SerializationHelper.writeJson(file, value)
+        SerializationHelper.writeJsonFile(file, value)
         return old
     }
 
     fun flush() {
         cache?.let { cached ->
-            SerializationHelper.writeJson(file, cached)
+            SerializationHelper.writeJsonFile(file, cached)
         }
     }
 

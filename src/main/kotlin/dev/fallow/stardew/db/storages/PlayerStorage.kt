@@ -18,7 +18,5 @@ object PlayerStorage : FolderStorageMap<PlayerId, PlayerData>(
         uniqueId = key
     )
 
-    fun load(player: OfflinePlayer): PlayerData {
-        return load(PlayerId(player.uniqueId))
-    }
+    fun load(player: OfflinePlayer) = load(PlayerId(player.uniqueId))
 }

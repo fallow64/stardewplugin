@@ -8,6 +8,17 @@ import java.util.*
 @JvmInline
 value class FarmId(val id: UUID)
 
+/** An in-game crop which has been planted/grown. */
+data class CropTile(
+    val definition: CropDefinitionId,
+    val location: FarmLocation3i,
+    val timePlaced: Long = System.currentTimeMillis(),
+    val currentDay: Int = 0,
+    @Transient
+    var watered: Boolean = false,
+)
+
+/** The main class for a farm, which may have multiple players. */
 data class Farm(
     val uniqueId: FarmId,
     // val worldId: UUID, // TODO: plots of land should have something here
@@ -39,4 +50,3 @@ data class Farm(
         players.remove(playerId)
     }
 }
-

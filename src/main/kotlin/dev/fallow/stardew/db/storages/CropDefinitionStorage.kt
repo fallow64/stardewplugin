@@ -17,4 +17,5 @@ object CropDefinitionStorage : FolderStorageMap<CropDefinitionId, CropDefinition
     },
 ) {
     override fun emptyValue(key: CropDefinitionId) = null
+    override val shouldLoadAllData = true
 }

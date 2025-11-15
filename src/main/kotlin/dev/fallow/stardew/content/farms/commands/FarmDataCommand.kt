@@ -44,14 +44,14 @@ object FarmDataCommand : ICommand {
                         player.sendFeedback(FeedbackType.Error, "You are not looking at a crop.")
                     } else {
                         player.sendFeedback(
-                            FeedbackType.Success,
-                            "Crop data of (x,y,z)=(${lookingAt.x},${lookingAt.y},${lookingAt.z}}:"
+                            FeedbackType.Success, "Crop data of (x,y,z)=(${lookingAt.x},${lookingAt.y},${lookingAt.z}}:"
                         )
 
                         val json = SerializationHelper.gson.toJson(cropTile)
                         player.sendMessage(json)
                     }
                 }
+
                 else -> ctx.sender.sendFeedback(FeedbackType.Error, "Unknown subcommand.")
             }
 

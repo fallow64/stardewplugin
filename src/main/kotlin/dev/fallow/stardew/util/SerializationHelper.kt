@@ -9,13 +9,10 @@ import com.google.gson.stream.JsonToken
 import com.google.gson.stream.JsonWriter
 import dev.fallow.stardew.StardewPlugin
 import dev.fallow.stardew.db.data.FarmId
-import java.io.BufferedReader
-import java.io.BufferedWriter
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 import java.io.IOException
-import java.nio.file.Files
 import java.util.*
 
 object SerializationHelper {
@@ -69,7 +66,7 @@ object SerializationHelper {
         }
     }
 
-    fun <T> readJson(file: File, klass: Class<T>): T {
+    fun <T> readJsonFile(file: File, klass: Class<T>): T {
         try {
             FileReader(file).use { reader ->
                 return gson.fromJson(reader, klass)
@@ -80,7 +77,7 @@ object SerializationHelper {
         }
     }
 
-    fun <T> writeJson(file: File, value: T) {
+    fun <T> writeJsonFile(file: File, value: T) {
         try {
             file.parentFile.mkdirs()
             FileWriter(file).use { writer ->
